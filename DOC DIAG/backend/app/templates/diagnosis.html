@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block title %}Diagnosis - Smart Health Diagnosis{% endblock %}
+
+{% block content %}
+<div class="bg-white rounded-lg shadow-md p-6">
+    <h1 class="text-3xl font-bold text-blue-600 mb-2">Health Diagnosis</h1>
+    <p class="text-gray-600 mb-6">Enter your symptoms and health metrics for analysis</p>
+    
+    <form method="POST" id="diagnosisForm">
+        <div class="mb-6">
+            <label for="symptoms" class="block text-gray-700 font-medium mb-2">Symptoms</label>
+            <textarea id="symptoms" name="symptoms" rows="4" required
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Describe your symptoms (comma separated) e.g., fever, headache, cough"></textarea>
+            <p class="text-sm text-gray-500 mt-1">Separate multiple symptoms with commas</p>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div>
+                <label for="heart_rate" class="block text-gray-700 font-medium mb-2">Heart Rate (bpm)</label>
+                <input type="number" id="heart_rate" name="heart_rate" min="0" max="300"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            
+            <div>
+                <label for="pulse_rate" class="block text-gray-700 font-medium mb-2">Pulse Rate (bpm)</label>
+                <input type="number" id="pulse_rate" name="pulse_rate" min="0" max="300"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            
+            <div>
+                <label class="block text-gray-700 font-medium mb-2">Blood Pressure</label>
+                <div class="flex items-center">
+                    <input type="number" id="systolic_bp" name="systolic_bp" min="0" max="300" placeholder="Systolic"
+                        class="w-1/2 px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <span class="bg-gray-200 px-2 py-2 border-t border-b">/</span>
+                    <input type="number" id="diastolic_bp" name="diastolic_bp" min="0" max="300" placeholder="Diastolic"
+                        class="w-1/2 px-3 py-2 border border-gray-300 rounded-r-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+            </div>
+            
+            <div>
+                <label for="temperature" class="block text-gray-700 font-medium mb-2">Body Temperature (°F)</label>
+                <input type="number" id="temperature" name="temperature" step="0.1" min="90" max="120"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+        </div>
+        
+        <button type="submit"
+            class="w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 transition duration-300 flex items-center justify-center">
+            <i class="fas fa-stethoscope mr-2"></i>Diagnose
+        </button>
+    </form>
+</div>
+
+<script>
+    // Form validation
+    document.getElementById('diagnosisForm').addEventListener('submit', function(e) {
+        const symptoms = document.getElementById('symptoms').value.trim();
+        if (!symptoms) {
+            e.preventDefault();
+            alert('Please enter at least one symptom');
+            return;
+        }
+    });
+</script>
+{% endblock %}

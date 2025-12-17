@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+
+{% block title %}Diagnosis Result - Smart Health Diagnosis{% endblock %}
+
+{% block content %}
+<div class="bg-white rounded-lg shadow-md p-6 mb-8">
+    <h1 class="text-3xl font-bold text-blue-600 mb-2">Diagnosis Result</h1>
+    <p class="text-gray-600">Analysis based on your symptoms and health metrics</p>
+</div>
+
+<!-- Emergency Alert -->
+{% if diagnosis_result.is_emergency %}
+<div class="bg-red-600 text-white rounded-lg shadow-md p-6 mb-8 animate-pulse">
+    <div class="flex items-center">
+        <i class="fas fa-exclamation-triangle text-3xl mr-4"></i>
+        <div>
+            <h2 class="text-2xl font-bold mb-2">IMMEDIATE MEDICAL ATTENTION REQUIRED</h2>
+            <p class="text-lg">Your vital signs indicate a potentially life-threatening condition. Please seek emergency medical care immediately.</p>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Risk Indicator -->
+<div class="bg-white rounded-lg shadow-md p-6 mb-8">
+    <h2 class="text-xl font-bold text-gray-800 mb-4">Risk Assessment</h2>
+    <div class="flex flex-col items-center">
+        {% if diagnosis_result.risk_level == "Critical" %}
+            <div class="w-24 h-24 rounded-full bg-red-600 flex items-center justify-center mb-4">
+                <i class="fas fa-exclamation-triangle text-white text-3xl"></i>
+            </div>
+            <h3 class="text-2xl font-bold text-red-600 mb-2">Critical Risk</h3>
+            <p class="text-gray-600 text-center">Based on our analysis, this is a critical condition requiring immediate medical attention.</p>
+        {% elif diagnosis_result.risk_level == "High" %}
+            <div class="w-24 h-24 rounded-full bg-red-100 flex items-center justify-center mb-4">
+                <i class="fas fa-exclamation-triangle text-red-600 text-3xl"></i>
+            </div>
+            <h3 class="text-2xl font-bold text-red-600 mb-2">High Risk</h3>
+            <p class="text-gray-600 text-center">Based on our analysis, you should seek medical attention immediately.</p>
+        {% elif diagnosis_result.risk_level == "Medium" %}
+            <div class="w-24 h-24 rounded-full bg-yellow-100 flex items-center justify-center mb-4">
+                <i class="fas fa-exclamation-circle text-yellow-600 text-3xl"></i>
+            </div>
+            <h3 class="text-2xl font-bold text-yellow-600 mb-2">Medium Risk</h3>
+            <p class="text-gray-600 text-center">Our analysis suggests you should monitor your symptoms and consider consulting a healthcare provider.</p>
+        {% else %}
+            <div class="w-24 h-24 rounded-full bg-green-100 flex items-center justify-center mb-4">
+                <i class="fas fa-check-circle text-green-600 text-3xl"></i>
+            </div>
+            <h3 class="text-2xl font-bold text-green-600 mb-2">Low Risk</h3>
+            <p class="text-gray-600 text-center">Based on our analysis, your condition appears to be mild. However, continue to monitor your symptoms.</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Disease Probabilities -->
+<div class="bg-white rounded-lg shadow-md p-6 mb-8">
+    <h2 class="text-xl font-bold text-gray-800 mb-4">Possible Conditions</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {% for disease, probability in diagnosis_result.diseases.items() %}
+            <div class="border border-gray-200 rounded-lg p-4">
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="font-bold text-lg">{{ disease }}</h3>
+                    <span class="{% if probability >= 80 %}bg-red-600 text-white{% elif probability >= 60 %}bg-red-100 text-red-800{% elif probability >= 30 %}bg-yellow-100 text-yellow-800{% else %}bg-blue-100 text-blue-800{% endif %} text-sm font-semibold px-2 py-1 rounded">
+                        {{ probability }}%
+                    </span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2.5">
+                    <div class="{% if probability >= 80 %}bg-red-600{% elif probability >= 60 %}bg-red-500{% elif probability >= 30 %}bg-yellow-500{% else %}bg-blue-600{% endif %} h-2.5 rounded-full" style="width: {{ probability }}%"></div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Chart Visualization -->
+<div class="bg-white rounded-lg shadow-md p-6 mb-8">
+    <h2 class="text-xl font-bold text-gray-800 mb-4">Probability Distribution</h2>
+    <canvas id="probabilityChart" width="400" height="200"></canvas>
+</div>
+
+<!-- Recommendations -->
+<div class="bg-white rounded-lg shadow-md p-6">
+    <h2 class="text-xl font-bold text-gray-800 mb-4">Recommendations</h2>
+    <ul class="list-disc pl-5 space-y-2">
+        {% if diagnosis_result.is_emergency %}
+            <li class="text-red-600 font-bold text-lg">EMERGENCY: Seek immediate medical attention at the nearest emergency room</li>
+        {% elif diagnosis_result.risk_level == "Critical" %}
+            <li class="text-red-600 font-semibold">Seek immediate medical attention</li>
+        {% elif diagnosis_result.risk_level == "High" %}
+            <li class="text-red-600 font-semibold">Seek immediate medical attention</li>
+        {% elif diagnosis_result.risk_level == "Medium" %}
+            <li>Schedule an appointment with your healthcare provider within 24-48 hours</li>
+        {% else %}
+            <li>If symptoms worsen, consult with a healthcare professional</li>
+        {% endif %}
+        <li>Monitor your symptoms closely and note any changes</li>
+        <li>Stay hydrated and get adequate rest</li>
+        <li>Maintain a healthy diet to support your immune system</li>
+        <li class="text-gray-500 text-sm mt-4">⚠️ Disclaimer: This is not a medical diagnosis. Always consult with a licensed healthcare professional for medical advice.</li>
+    </ul>
+</div>
+
+<a href="{{ url_for('diagnosis') }}" 
+   class="fixed bottom-6 right-6 bg-blue-600 text-white py-3 px-6 rounded-full shadow-lg hover:bg-blue-700 transition duration-300 flex items-center">
+    <i class="fas fa-redo mr-2"></i>New Diagnosis
+</a>
+
+<script>
+    // Prepare chart data
+    const diseases = {{ diagnosis_result.diseases.keys()|list|tojson }};
+    const probabilities = {{ diagnosis_result.diseases.values()|list|tojson }};
+    
+    // Create chart
+    const ctx = document.getElementById('probabilityChart').getContext('2d');
+    const chart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: diseases,
+            datasets: [{
+                label: 'Probability (%)',
+                data: probabilities,
+                backgroundColor: [
+                    'rgba(54, 162, 235, 0.7)',
+                    'rgba(255, 99, 132, 0.7)',
+                    'rgba(255, 205, 86, 0.7)',
+                    'rgba(75, 192, 192, 0.7)',
+                    'rgba(153, 102, 255, 0.7)'
+                ],
+                borderColor: [
+                    'rgba(54, 162, 235, 1)',
+                    'rgba(255, 99, 132, 1)',
+                    'rgba(255, 205, 86, 1)',
+                    'rgba(75, 192, 192, 1)',
+                    'rgba(153, 102, 255, 1)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100,
+                    ticks: {
+                        callback: function(value) {
+                            return value + '%';
+                        }
+                    }
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}

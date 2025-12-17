@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+{% block title %}Home - Smart Health Diagnosis{% endblock %}
+
+{% block content %}
+<div class="bg-white rounded-lg shadow-md p-6 mb-8">
+    <h1 class="text-3xl font-bold text-blue-600 mb-2">Welcome, {{ session.user_name }}!</h1>
+    <p class="text-gray-600">Your health history and diagnosis records are displayed below.</p>
+</div>
+
+<div class="flex flex-col md:flex-row gap-6 mb-8">
+    <div class="bg-white rounded-lg shadow-md p-6 flex-1">
+        <h2 class="text-xl font-bold text-gray-800 mb-4">Quick Actions</h2>
+        <a href="{{ url_for('diagnosis') }}" 
+           class="block w-full bg-blue-600 text-white text-center py-3 px-4 rounded-md hover:bg-blue-700 transition duration-300 mb-3">
+            <i class="fas fa-stethoscope mr-2"></i>New Diagnosis
+        </a>
+        <a href="{{ url_for('settings') }}" 
+           class="block w-full bg-gray-200 text-gray-800 text-center py-3 px-4 rounded-md hover:bg-gray-300 transition duration-300">
+            <i class="fas fa-user-edit mr-2"></i>Update Profile
+        </a>
+    </div>
+    
+    <div class="bg-white rounded-lg shadow-md p-6 flex-1">
+        <h2 class="text-xl font-bold text-gray-800 mb-4">Health Statistics</h2>
+        <div class="grid grid-cols-2 gap-4">
+            <div class="bg-blue-50 p-4 rounded-lg text-center">
+                <p class="text-2xl font-bold text-blue-600">{{ diagnoses|length }}</p>
+                <p class="text-gray-600">Total Diagnoses</p>
+            </div>
+            <div class="bg-green-50 p-4 rounded-lg text-center">
+                <p class="text-2xl font-bold text-green-600">
+                    {% set high_risk_count = diagnoses|selectattr('diagnosis_result.risk_level', 'equalto', 'High')|list|length %}
+                    {{ high_risk_count }}
+                </p>
+                <p class="text-gray-600">High Risk Cases</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<h2 class="text-2xl font-bold text-gray-800 mb-4">Diagnosis History</h2>
+
+{% if diagnoses %}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for diagnosis in diagnoses %}
+            {% set result = diagnosis.diagnosis_result|from_json %}
+            <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                <div class="bg-blue-50 px-4 py-3 border-b">
+                    <h3 class="font-bold text-lg text-blue-600">
+                        {{ diagnosis.date.strftime('%B %d, %Y') }}
+                    </h3>
+                </div>
+                <div class="p-4">
+                    <div class="mb-3">
+                        <p class="text-sm text-gray-500">Symptoms</p>
+                        <p class="font-medium">{{ diagnosis.symptoms[:50] }}{% if diagnosis.symptoms|length > 50 %}...{% endif %}</p>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <p class="text-sm text-gray-500">Top Diagnosis</p>
+                        {% if result.diseases %}
+                            {% set top_disease = result.diseases|first %}
+                            <p class="font-medium">{{ top_disease[0] }} 
+                                <span class="bg-blue-100 text-blue-800 text-xs font-semibold px-2 py-1 rounded">
+                                    {{ top_disease[1] }}%
+                                </span>
+                            </p>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <p class="text-sm text-gray-500">Risk Level</p>
+                        {% if result.risk_level == "Critical" %}
+                            <span class="bg-red-600 text-white text-xs font-semibold px-2 py-1 rounded">
+                                {{ result.risk_level }}
+                            </span>
+                        {% elif result.risk_level == "High" %}
+                            <span class="bg-red-100 text-red-800 text-xs font-semibold px-2 py-1 rounded">
+                                {{ result.risk_level }}
+                            </span>
+                        {% elif result.risk_level == "Medium" %}
+                            <span class="bg-yellow-100 text-yellow-800 text-xs font-semibold px-2 py-1 rounded">
+                                {{ result.risk_level }}
+                            </span>
+                        {% else %}
+                            <span class="bg-green-100 text-green-800 text-xs font-semibold px-2 py-1 rounded">
+                                {{ result.risk_level }}
+                            </span>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        <p class="text-sm text-gray-500">Medicines Prescribed</p>
+                        <p class="font-medium text-gray-600">Not available in demo</p>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="bg-white rounded-lg shadow-md p-12 text-center">
+        <i class="fas fa-file-medical text-gray-300 text-6xl mb-4"></i>
+        <h3 class="text-xl font-bold text-gray-700 mb-2">No Diagnosis History</h3>
+        <p class="text-gray-500 mb-6">You haven't performed any diagnosis yet.</p>
+        <a href="{{ url_for('diagnosis') }}" 
+           class="inline-block bg-blue-600 text-white py-2 px-6 rounded-md hover:bg-blue-700 transition duration-300">
+            <i class="fas fa-plus mr-2"></i>Perform Your First Diagnosis
+        </a>
+    </div>
+{% endif %}
+{% endblock %}
